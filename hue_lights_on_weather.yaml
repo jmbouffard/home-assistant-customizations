@@ -1,0 +1,160 @@
+alias: Hue lights ON - Weather
+description: 'This Automatization script is used to set the color of Hue lights based on weather attributes from Environment Canada (forecast min/max temperature, min/max normals and rain forecast)'
+triggers:
+  - trigger: sun
+    event: sunset
+    offset: 0
+conditions: []
+actions:
+  - action: light.turn_on
+    metadata: {}
+    target:
+      entity_id: light.outdoor
+    data:
+      brightness_pct: 100
+      rgb_color: >-
+        {% set forecast_low = states('sensor.gatineau_basse_temperature') |
+        float(0) %} {% set normal_low =
+        states('sensor.gatineau_basse_temperature_normale') | float(0) %} {% set
+        diff = forecast_low - normal_low %} {% if diff <= -2.0 %} [51,51,255] {%
+        elif diff >= 2.0 %} [255,51,51] {% else %} [51,255,51] {% endif %}
+    enabled: false
+  - action: light.turn_on
+    metadata: {}
+    target:
+      entity_id:
+        - light.hue_color_left_1
+        - light.hue_color_left_2
+    data:
+      brightness_pct: 100
+      rgb_color: >-
+        {% set forecast_low = states('sensor.gatineau_basse_temperature') |
+        float(0) %}
+
+        {% set normal_low = states('sensor.gatineau_basse_temperature_normale')
+        | float(0) %}
+
+        {% set diff = forecast_low - normal_low %}
+
+
+        {# Round to the nearest degree and clamp between -10 and +10 #}
+
+        {% set diff_step = [[diff | round(0) | int, -10] | max, 10] | min %}
+
+
+        {# Color scale: -10°C to +10°C #}
+
+        {% set colors = [
+          [0, 0, 255],
+          [0, 26, 255],
+          [0, 51, 255],
+          [0, 77, 255],
+          [0, 102, 255],
+          [0, 128, 255],
+          [0, 153, 255],
+          [0, 179, 255],
+          [0, 204, 255],
+          [0, 230, 230],
+          [0, 255, 0],
+          [51, 255, 0],
+          [102, 255, 0],
+          [153, 255, 0],
+          [204, 255, 0],
+          [255, 255, 0],
+          [255, 204, 0],
+          [255, 153, 0],
+          [255, 102, 0],
+          [255, 51, 0],
+          [255, 0, 0]
+        ] %}
+
+
+        {{ colors[diff_step + 10] }}
+  - action: light.turn_on
+    metadata: {}
+    target:
+      entity_id:
+        - light.hue_color_center
+    data:
+      brightness_pct: 100
+      rgb_color: >-
+        {% set rain = states('sensor.gatineau_probabilite_d_averses') | float(0)
+        %}
+
+
+        {# Round to nearest 10% and clamp between 0 and 10 #}
+
+        {% set rain_step = [[(rain / 10) | round(0) | int, 0] | max, 10] | min
+        %}
+
+
+        {# Color scale: 0% to 100% #}
+
+        {% set colors = [
+          [255, 255, 255],
+          [220, 245, 255],
+          [190, 235, 255],
+          [150, 220, 255],
+          [110, 205, 255],
+          [70, 190, 255],
+          [40, 165, 245],
+          [20, 135, 225],
+          [10, 105, 200],
+          [5, 70, 170],
+          [0, 40, 140]
+        ] %}
+
+
+        {{ colors[rain_step] }}
+  - action: light.turn_on
+    metadata: {}
+    target:
+      entity_id:
+        - light.hue_color_right_1
+        - light.hue_color_right_2
+    data:
+      brightness_pct: 100
+      rgb_color: >-
+        {% set forecast_high = states('sensor.gatineau_haute_temperature') |
+        float(0) %}
+
+        {% set normal_high = states('sensor.gatineau_haute_temperature_normale')
+        | float(0) %}
+
+        {% set diff = forecast_high - normal_high %}
+
+
+        {# Round to the nearest degree and clamp between -10 and +10 #}
+
+        {% set diff_step = [[diff | round(0) | int, -10] | max, 10] | min %}
+
+
+        {# Color scale: -10°C to +10°C #}
+
+        {% set colors = [
+          [0, 0, 255],
+          [0, 26, 255],
+          [0, 51, 255],
+          [0, 77, 255],
+          [0, 102, 255],
+          [0, 128, 255],
+          [0, 153, 255],
+          [0, 179, 255],
+          [0, 204, 255],
+          [0, 230, 230],
+          [0, 255, 0],
+          [51, 255, 0],
+          [102, 255, 0],
+          [153, 255, 0],
+          [204, 255, 0],
+          [255, 255, 0],
+          [255, 204, 0],
+          [255, 153, 0],
+          [255, 102, 0],
+          [255, 51, 0],
+          [255, 0, 0]
+        ] %}
+
+
+        {{ colors[diff_step + 10] }}
+mode: single
